@@ -1,0 +1,4 @@
+#!/bin/bash
+rm lib/com_acabra_robot_ImprovedBot.dll ; rm src/main/cpp/com_acabra_robot_ImprovedBot.o ; \
+  g++ -c -I$JAVA_HOME/include -I$JAVA_HOME/include/win32 src/main/cpp/com_acabra_robot_ImprovedBot.cpp -o src/main/cpp/com_acabra_robot_ImprovedBot.o \
+  && g++ -shared -o lib/com_acabra_robot_ImprovedBot.dll src/main/cpp/com_acabra_robot_ImprovedBot.o -Wl,--add-stdcall-alias
