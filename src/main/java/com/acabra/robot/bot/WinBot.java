@@ -72,12 +72,11 @@ public class WinBot extends ImprovedBot {
         if (sleep) Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
-    //private native String getKeyboardLanguage();
-
-    private void runCommand(String command) throws InterruptedException {
-        minimizeAll();
-        openRunWindow();
-        execute(command);
+    @Override
+    protected void newWindow() throws InterruptedException{
+        pressCtrlWith(CHAR_EVT_MAP.get('m').get(0));
         Thread.sleep(DEFAULT_ACTION_DELAY);
     }
+
+    //private native String getKeyboardLanguage();
 }

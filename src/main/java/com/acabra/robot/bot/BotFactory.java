@@ -34,13 +34,13 @@ public class BotFactory {
 
     private static void execute(ImprovedBot bot, long secondsRunning, TimeUnit timeUnit) {
         ExecutorService executor = Executors.newFixedThreadPool(2);
-        CompletableFuture.runAsync(()-> {
-            int i = JOptionPane.showConfirmDialog(null, "Shutdown?");
-            if (i == JOptionPane.OK_OPTION) {
-                requestShutdown(bot, executor);
-            }
+        CompletableFuture.runAsync(() -> {
+            bot.run();
+//            int i = JOptionPane.showConfirmDialog(null, "Shutdown?");
+//            if (i == JOptionPane.OK_OPTION) {
+//                requestShutdown(bot, executor);
+//            }
         }, executor);
-        CompletableFuture.runAsync(bot, executor);
         CompletableFuture.runAsync(()-> requestShutdown(bot, executor),
                 CompletableFuture.delayedExecutor(secondsRunning, timeUnit));
     }

@@ -24,7 +24,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     private final OsType os;
     protected final String loopText;
-    private final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
+    protected final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
 
     public ImprovedBot(OsType os, String loopText) throws AWTException {
         super();
@@ -56,9 +56,20 @@ public abstract class ImprovedBot extends Robot implements Runnable {
         keyRelease(groupEvtKey);
     }
 
+    protected void pressCombined(List<Integer> combine) {
+        keyPress(combine.get(0));
+        pressRelease(combine.get(1));
+        keyRelease(combine.get(0));
+    }
+
     protected void pressRelease(int evtKey) {
+
         keyPress(evtKey);
         keyRelease(evtKey);
+    }
+
+    protected void pressEsc() {
+        pressRelease(KeyEvent.VK_ESCAPE);
     }
 
     protected void execute(String command) throws InterruptedException {
@@ -78,6 +89,13 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected void rightClick() {
         mousePress(InputEvent.BUTTON1_DOWN_MASK);
         mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+    }
+
+    protected void runCommand(String command) throws InterruptedException {
+        //minimizeAll();
+        openRunWindow();
+        execute(command);
+        Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
     protected void pressCtrlWith(int evtKey) {
@@ -163,12 +181,25 @@ public abstract class ImprovedBot extends Robot implements Runnable {
             put('7', List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_7));
             put('8', List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_8));
             put('9', List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_9));
+            put('!', List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_1));
             put(' ', List.of(KeyEvent.VK_SPACE));
             put('+', List.of(KeyEvent.VK_PLUS));
             put('-', List.of(KeyEvent.VK_MINUS));
             put('_', List.of(KeyEvent.VK_UNDERSCORE));
             put('.', List.of(KeyEvent.VK_PERIOD));
+            put(';', getSemicolonEvent());
+            put(':', getColonEvent());
         }};
+    }
+
+    private static List<Integer> getColonEvent() {
+        //defaults for en_us
+        return List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_SEMICOLON);
+    }
+
+    private static List<Integer> getSemicolonEvent() {
+        //defaults for en_us
+        return List.of(KeyEvent.VK_SEMICOLON);
     }
 
     protected abstract void fileNew();
@@ -176,4 +207,6 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected abstract void closeProgram(boolean sleep) throws InterruptedException;
 
     protected abstract void deleteAll(boolean sleep) throws InterruptedException;
+
+    protected abstract void newWindow() throws InterruptedException;
 }
