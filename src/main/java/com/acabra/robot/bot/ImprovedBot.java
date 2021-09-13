@@ -15,7 +15,7 @@ import java.util.Map;
 public abstract class ImprovedBot extends Robot implements Runnable {
 
     protected static final java.util.List<Integer> DEFAULT_NOT_FOUND_KEY = List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_3);
-    protected static final long LOOP_SLEEP = 3000L;
+    protected static final long LOOP_SLEEP = 5000L;
     private static final long DEFAULT_TYPING_DELAY = 80L;
     protected static final long DEFAULT_ACTION_DELAY = 500L;
 
@@ -35,7 +35,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected void type(char aChar) throws InterruptedException {
         List<Integer> ev = CHAR_EVT_MAP.getOrDefault(aChar, DEFAULT_NOT_FOUND_KEY);
         if (ev.size() == 1) {
-            pressRelease(ev.get(0));
+            keyStroke(ev.get(0));
         } else {
             pressCombined(ev.get(0), ev.get(1));
         }
@@ -52,24 +52,31 @@ public abstract class ImprovedBot extends Robot implements Runnable {
 
     protected void pressCombined(int groupEvtKey, int terminalEvtKey) {
         keyPress(groupEvtKey);
-        pressRelease(terminalEvtKey);
+        keyStroke(terminalEvtKey);
         keyRelease(groupEvtKey);
     }
 
     protected void pressCombined(List<Integer> combine) {
         keyPress(combine.get(0));
-        pressRelease(combine.get(1));
+        keyStroke(combine.get(1));
         keyRelease(combine.get(0));
     }
 
-    protected void pressRelease(int evtKey) {
-
+    protected void keyStroke(int evtKey) {
         keyPress(evtKey);
         keyRelease(evtKey);
     }
 
+    protected void keyStroke(List<Integer> events) {
+        if(events.size() == 1) {
+            keyStroke(events.get(0));
+            return;
+        }
+        pressCombined(events);
+    }
+
     protected void pressEsc() {
-        pressRelease(KeyEvent.VK_ESCAPE);
+        keyStroke(KeyEvent.VK_ESCAPE);
     }
 
     protected void execute(String command) throws InterruptedException {
@@ -78,7 +85,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void typeEnter() {
-        pressRelease(KeyEvent.VK_ENTER);
+        keyStroke(KeyEvent.VK_ENTER);
     }
 
     protected void leftClick() {

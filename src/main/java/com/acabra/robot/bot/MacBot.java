@@ -79,20 +79,20 @@ public class MacBot extends ImprovedBot {
         Integer q = CHAR_EVT_MAP.get('q').get(0);
         List<Integer> colonEvt = CHAR_EVT_MAP.get(':');
         pressCombined(colonEvt);
-        pressRelease(q);
+        keyStroke(q);
         pressCombined(bang);
         closeProgram(true);
     }
 
     private void vimDeleteAll() throws InterruptedException {
         pressEsc();
-        Integer g = CHAR_EVT_MAP.get('g').get(0);
-        Integer d = CHAR_EVT_MAP.get('d').get(0);
+        List<Integer> g = CHAR_EVT_MAP.get('g');
+        List<Integer> d = CHAR_EVT_MAP.get('d');
         List<Integer> G = CHAR_EVT_MAP.get('G');
-        pressRelease(g);
-        pressRelease(g);
-        pressRelease(d);
-        pressCombined(G.get(0), G.get(1));
+        keyStroke(g);
+        keyStroke(g);
+        keyStroke(d);
+        keyStroke(G);
         Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 

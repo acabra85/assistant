@@ -42,15 +42,30 @@ public class WinBot extends ImprovedBot {
             }
             deleteAll(true);
             closeProgram(true);
+            hibernate();
         } catch (InterruptedException ie) {
             log.error(ie.getMessage(), ie);
             try {
                 deleteAll(false);
                 closeProgram(false);
+                hibernate();
             } catch (Exception e) {
                 log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
             }
             Thread.currentThread().interrupt();
+        } finally {
+        }
+    }
+
+    private void hibernate() {
+        try {
+            minimizeAll();
+            closeProgram(true);
+            keyStroke(CHAR_EVT_MAP.get('h'));
+            keyStroke(KeyEvent.VK_TAB);
+            keyStroke(KeyEvent.VK_SPACE);
+        } catch (Exception e) {
+            log.error("Failed to hibernate: " + e.getMessage());
         }
     }
 
@@ -68,13 +83,13 @@ public class WinBot extends ImprovedBot {
     @Override
     protected void deleteAll(boolean sleep) throws InterruptedException {
         pressCombined(KeyEvent.VK_CONTROL, KeyEvent.VK_A);
-        pressRelease(KeyEvent.VK_BACK_SPACE);
+        keyStroke(KeyEvent.VK_BACK_SPACE);
         if (sleep) Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
     @Override
     protected void newWindow() throws InterruptedException{
-        pressCtrlWith(CHAR_EVT_MAP.get('m').get(0));
+        pressCtrlWith(CHAR_EVT_MAP.get('n').get(0));
         Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
