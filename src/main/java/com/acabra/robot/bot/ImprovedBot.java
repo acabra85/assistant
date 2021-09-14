@@ -17,7 +17,8 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected static final java.util.List<Integer> DEFAULT_NOT_FOUND_KEY = List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_3);
     protected static final long LOOP_SLEEP = 5000L;
     private static final long DEFAULT_TYPING_DELAY = 80L;
-    protected static final long DEFAULT_ACTION_DELAY = 500L;
+    protected static final long DEFAULT_ACTION_DELAY = 150L;
+    private final OnFinishAction onFinishAction;
 
     private volatile boolean finish = false;
 
@@ -26,10 +27,13 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected final String loopText;
     protected final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
 
-    public ImprovedBot(OsType os, String loopText) throws AWTException {
+    public ImprovedBot(OsType os, String loopText, OnFinishAction onFinishAction) throws AWTException {
         super();
         this.loopText = loopText;
         this.os = os;
+        this.onFinishAction = onFinishAction;
+        this.setAutoDelay((int)DEFAULT_ACTION_DELAY);
+        this.setAutoWaitForIdle(true);
     }
 
     protected void type(char aChar) throws InterruptedException {
@@ -99,7 +103,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void runCommand(String command) throws InterruptedException {
-        //minimizeAll();
+        minimizeAll();
         openRunWindow();
         execute(command);
         Thread.sleep(DEFAULT_ACTION_DELAY);
@@ -208,6 +212,46 @@ public abstract class ImprovedBot extends Robot implements Runnable {
         //defaults for en_us
         return List.of(KeyEvent.VK_SEMICOLON);
     }
+
+    public abstract void botAction();
+
+    @Override
+    public void run() {
+        try {
+            botAction();
+        } finally {
+            terminateBot();
+        }
+    }
+
+    protected void terminateBot() {
+
+        switch (onFinishAction) {
+            case NOTHING:
+                log.info("Bot completed");
+                return;
+            case HIBERNATE:
+                log.info("Bot completed, system hibernate");
+                sysHibernate();
+                return;
+            case SLEEP:
+                log.info("Bot completed, system sleep");
+                sysSleep();
+                return;
+            case SHUTDOWN:
+                log.info("Bot completed, system shutdown");
+                sysShutDown();
+                return;
+            default:
+                throw new UnsupportedOperationException("Operation not yet supported: " + onFinishAction);
+        }
+    }
+
+    protected abstract void sysShutDown();
+
+    protected abstract void sysSleep();
+
+    protected abstract void sysHibernate();
 
     protected abstract void fileNew();
 

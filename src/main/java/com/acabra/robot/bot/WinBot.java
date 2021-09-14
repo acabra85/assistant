@@ -8,8 +8,8 @@ import java.awt.event.KeyEvent;
 @Slf4j
 public class WinBot extends ImprovedBot {
 
-    public WinBot(String loopText) throws AWTException {
-        super(OsType.WIN, loopText);
+    public WinBot(String loopText, OnFinishAction onFinishAction) throws AWTException {
+        super(OsType.WIN, loopText, onFinishAction);
         log.info("Started WinBot ...");
     }
 
@@ -31,7 +31,7 @@ public class WinBot extends ImprovedBot {
 
     @SuppressWarnings("BusyWait")
     @Override
-    public void run() {
+    public void botAction() {
         try {
             runCommand("notepad");
             fileNew();
@@ -42,22 +42,30 @@ public class WinBot extends ImprovedBot {
             }
             deleteAll(true);
             closeProgram(true);
-            hibernate();
         } catch (InterruptedException ie) {
-            log.error(ie.getMessage(), ie);
+            log.error(ie.getMessage());
             try {
                 deleteAll(false);
                 closeProgram(false);
-                hibernate();
             } catch (Exception e) {
                 log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
             }
-            Thread.currentThread().interrupt();
-        } finally {
         }
+        log.info("Program finished");
     }
 
-    private void hibernate() {
+    @Override
+    protected void sysShutDown() {
+
+    }
+
+    @Override
+    protected void sysSleep() {
+
+    }
+
+    @Override
+    protected void sysHibernate() {
         try {
             minimizeAll();
             closeProgram(true);

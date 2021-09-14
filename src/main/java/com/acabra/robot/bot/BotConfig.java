@@ -16,29 +16,34 @@ public class BotConfig {
     public final String loopingText;
     public final long runningTime;
     public final TimeUnit timeUnit;
+    public final OnFinishAction onFinishAction;
 
-    public BotConfig(String loopingText, long runningTime, TimeUnit timeUnit) {
+    public BotConfig(String loopingText, long runningTime, TimeUnit timeUnit, OnFinishAction onFinishAction) {
         this.loopingText = loopingText;
         this.runningTime = runningTime;
         this.timeUnit = timeUnit;
+        this.onFinishAction = onFinishAction;
+        log.info(toString());
     }
 
     public BotConfig() {
         this.timeUnit = TimeUnit.SECONDS;
         this.loopingText = DEFAULT_EXECUTION_TEXT;
         this.runningTime = DEFAULT_LOOPING_TIME_SECS;
+        this.onFinishAction = OnFinishAction.NOTHING;
     }
 
     public static BotConfig fromArgs(String... args) {
         if(args == null || args.length == 0) {
             log.debug("No args given at launch");
             String text = getLoopingText();
-            TimeUnit timeUnit = ComboBoxPanel.getTimeUnit();
+            TimeUnit timeUnit = ComboBoxPanel.getTimeUnit("Choose the time unit ... ");
             long runningTime = getRunningTime(timeUnit);
-            return new BotConfig(text, runningTime, timeUnit);
+            OnFinishAction finishAction = ComboBoxPanel.getFinishAction("Choose action after finishing ... ");
+            return new BotConfig(text, runningTime, timeUnit, finishAction);
         } else if(args.length >= 2) {
             log.debug("two arg given {} ", Arrays.toString(args));
-            return new BotConfig(args[0], Long.parseLong(args[1]), TimeUnit.SECONDS);
+            return new BotConfig(args[0], Long.parseLong(args[1]), TimeUnit.SECONDS, OnFinishAction.NOTHING);
         }
         log.debug("Args given dismissed {}, launching with defaults", Arrays.toString(args));
         return new BotConfig();
@@ -60,5 +65,15 @@ public class BotConfig {
     private static String getLoopingText() {
         String inputText = JOptionPane.showInputDialog("What is the looping text?");
         return inputText == null || inputText.isBlank() ? DEFAULT_EXECUTION_TEXT : inputText;
+    }
+
+    @Override
+    public String toString() {
+        return "BotConfig{" +
+                "loopingText='" + loopingText + '\'' +
+                ", runningTime=" + runningTime +
+                ", timeUnit=" + timeUnit +
+                ", onFinishAction=" + onFinishAction +
+                '}';
     }
 }

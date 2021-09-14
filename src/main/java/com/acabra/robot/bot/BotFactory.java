@@ -19,10 +19,10 @@ public class BotFactory {
             OsType type = OsType.getOsType();
             switch (type) {
                 case MAC:
-                    execute(new MacBot(config.loopingText), config.runningTime, config.timeUnit);
+                    execute(new MacBot(config.loopingText, config.onFinishAction), config.runningTime, config.timeUnit);
                     break;
                 case WIN:
-                    execute(new WinBot(config.loopingText), config.runningTime, config.timeUnit);
+                    execute(new WinBot(config.loopingText, config.onFinishAction), config.runningTime, config.timeUnit);
                     break;
                 default:
                     throw new UnsupportedOperationException("No implementation bot found for OS: " + OsType.OS_NAME);

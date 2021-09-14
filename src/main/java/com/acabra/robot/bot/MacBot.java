@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MacBot extends ImprovedBot {
 
-    public MacBot(String loopText) throws AWTException {
-        super(OsType.MAC, loopText);
+    public MacBot(String loopText, OnFinishAction onFinishAction) throws AWTException {
+        super(OsType.MAC, loopText, onFinishAction);
         log.info("Running the MAC os bot ...");
     }
 
@@ -44,7 +44,7 @@ public class MacBot extends ImprovedBot {
     }
 
     @Override
-    public void run() {
+    public void botAction() {
         try {
             runCommand("terminal.app");
             newWindow();
@@ -65,6 +65,21 @@ public class MacBot extends ImprovedBot {
             }
             Thread.currentThread().interrupt();
         }
+    }
+
+    @Override
+    protected void sysShutDown() {
+
+    }
+
+    @Override
+    protected void sysSleep() {
+
+    }
+
+    @Override
+    protected void sysHibernate() {
+
     }
 
     @Override
