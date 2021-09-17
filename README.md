@@ -10,7 +10,7 @@ This is a real time bot that performs automatic tasks.
 - assign execute permissions to the mvnw file ```chmod +x mvnw```
 
 ### Run
-``` ./mvnw clean install && java -jar target/assistant-1.0-SNAPSHOT.jar "<TEXT_TO_LOOP>" SECONDS_TO_RUN```
+``` ./mvnw clean install && java -jar target/assistant-1.1.jar "<TEXT_TO_LOOP>" SECONDS_TO_RUN```
 
 * SECONDS_TO_RUN integer representing the amount of time the assistant should run for
 * TEXT_TO_LOOP a text that will be typed in notepad

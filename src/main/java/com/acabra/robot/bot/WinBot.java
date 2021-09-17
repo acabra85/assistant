@@ -2,14 +2,16 @@ package com.acabra.robot.bot;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.KeyEvent;
 
 @Slf4j
 public class WinBot extends ImprovedBot {
 
-    public WinBot(String loopText, OnFinishAction onFinishAction) throws AWTException {
-        super(OsType.WIN, loopText, onFinishAction);
+    public WinBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction) throws AWTException {
+        super(OsType.WIN, loopText, executionType, onFinishAction);
         log.info("Started WinBot ...");
     }
 
@@ -29,9 +31,39 @@ public class WinBot extends ImprovedBot {
         Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
-    @SuppressWarnings("BusyWait")
     @Override
     public void botAction() {
+        try {
+            switch (this.executionType) {
+                case NOTEPAD_TYPE:
+                    notepadTypeAction();
+                    break;
+                case MOUSE_MOVER:
+                    mouseMoverAction();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unimplemented type: " + this.executionType);
+
+            }
+        } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+        }
+        log.info("Program finished");
+    }
+
+    @SuppressWarnings("BusyWait")
+    private void mouseMoverAction() throws InterruptedException {
+        boolean cycle = false;
+        while(continueRunning()) {
+            Point curLocation = MouseInfo.getPointerInfo().getLocation();
+            mouseMove(curLocation.x, curLocation.y + (cycle ? 10 : -10) );
+            cycle = !cycle;
+            Thread.sleep(10000L);
+        }
+    }
+
+    @SuppressWarnings("BusyWait")
+    private void notepadTypeAction() {
         try {
             runCommand("notepad");
             fileNew();
@@ -51,7 +83,6 @@ public class WinBot extends ImprovedBot {
                 log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
             }
         }
-        log.info("Program finished");
     }
 
     @Override

@@ -19,6 +19,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     private static final long DEFAULT_TYPING_DELAY = 80L;
     protected static final long DEFAULT_ACTION_DELAY = 150L;
     private final OnFinishAction onFinishAction;
+    protected final ExecutionType executionType;
 
     private volatile boolean finish = false;
 
@@ -27,11 +28,12 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected final String loopText;
     protected final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
 
-    public ImprovedBot(OsType os, String loopText, OnFinishAction onFinishAction) throws AWTException {
+    public ImprovedBot(OsType os, String loopText, ExecutionType executionType, OnFinishAction onFinishAction) throws AWTException {
         super();
         this.loopText = loopText;
         this.os = os;
         this.onFinishAction = onFinishAction;
+        this.executionType = executionType;
         this.setAutoDelay((int)DEFAULT_ACTION_DELAY);
         this.setAutoWaitForIdle(true);
     }
@@ -103,7 +105,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void runCommand(String command) throws InterruptedException {
-        minimizeAll();
+        //minimizeAll();
         openRunWindow();
         execute(command);
         Thread.sleep(DEFAULT_ACTION_DELAY);
