@@ -40,31 +40,58 @@ public class MacBot extends ImprovedBot {
 
     @Override
     protected void deleteAll(boolean sleep) throws InterruptedException {
-
+        pressCommandWith(KeyEvent.VK_A);
+        keyStroke(KeyEvent.VK_BACK_SPACE);
+        if (sleep) Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
     @Override
     public void botAction() {
         try {
-            runCommand("terminal.app");
-            newWindow();
-            /*execute("vi .deleteme");
+            switch (this.executionType) {
+                case NOTEPAD_TYPE:
+                    notepadTypeAction();
+                    break;
+                case MOUSE_MOVER:
+                    mouseMoverAction();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unimplemented type: " + this.executionType);
+
+            }
+        } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+        }
+        log.info("Program finished");
+    }
+
+    private void notepadTypeAction() throws InterruptedException {
+        try {
+            runCommand("TextEdit");
+            fileNew();
+            noFormatText();
             while (continueRunning()) {
-                pressRelease(CHAR_EVT_MAP.get('i').get(0));
                 typeText(loopText);
-                vimDeleteAll();
+                deleteAll(true);
                 Thread.sleep(LOOP_SLEEP);
             }
-            closeVim();*/
+            deleteAll(true);
+            closeProgram(true);
         } catch (InterruptedException ie) {
-            log.error(ie.getMessage(), ie);
+            log.error(ie.getMessage());
             try {
-                closeVim();
+                deleteAll(false);
+                closeProgram(false);
             } catch (Exception e) {
                 log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
             }
-            Thread.currentThread().interrupt();
         }
+    }
+
+    private void noFormatText() {
+        keyPress(KeyEvent.VK_META);
+        pressCombined(CHAR_EVT_MAP.get('T'));
+        keyRelease(KeyEvent.VK_META);
     }
 
     @Override

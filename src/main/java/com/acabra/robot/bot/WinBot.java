@@ -52,17 +52,6 @@ public class WinBot extends ImprovedBot {
     }
 
     @SuppressWarnings("BusyWait")
-    private void mouseMoverAction() throws InterruptedException {
-        boolean cycle = false;
-        while(continueRunning()) {
-            Point curLocation = MouseInfo.getPointerInfo().getLocation();
-            mouseMove(curLocation.x, curLocation.y + (cycle ? 10 : -10) );
-            cycle = !cycle;
-            Thread.sleep(10000L);
-        }
-    }
-
-    @SuppressWarnings("BusyWait")
     private void notepadTypeAction() {
         try {
             runCommand("notepad");

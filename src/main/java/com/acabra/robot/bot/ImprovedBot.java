@@ -49,7 +49,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void typeText(String text) throws InterruptedException {
-        char[] chars = text.toLowerCase().toCharArray();
+        char[] chars = text.toCharArray();
         for (char aChar : chars) {
             type(aChar);
         }
@@ -109,6 +109,17 @@ public abstract class ImprovedBot extends Robot implements Runnable {
         openRunWindow();
         execute(command);
         Thread.sleep(DEFAULT_ACTION_DELAY);
+    }
+
+    @SuppressWarnings("BusyWait")
+    protected void mouseMoverAction() throws InterruptedException {
+        boolean cycle = false;
+        while(continueRunning()) {
+            Point curLocation = MouseInfo.getPointerInfo().getLocation();
+            mouseMove(curLocation.x, curLocation.y + (cycle ? 10 : -10) );
+            cycle = !cycle;
+            Thread.sleep(10000L);
+        }
     }
 
     protected void pressCtrlWith(int evtKey) {
