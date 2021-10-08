@@ -61,6 +61,13 @@ public class ComboBoxPanel<T> extends JPanel {
         return new ComboBoxPanel<>(title, options, items, defValue).response;
     }
 
+    public static String getNoYes(String msg, String defValue) {
+        String title = String.format(msg);
+        String[] items = {"No", "Yes"};
+        String[] options = buildOptionsFromItems(items);
+        return new ComboBoxPanel<>(title, options, items, defValue).response;
+    }
+
     private Object configure(JOptionPane jOptionPane, String prompt, JComponent field) {
         JDialog jDialog = promptDialog(prompt, jOptionPane, field);
         Object result = jOptionPane.getValue();

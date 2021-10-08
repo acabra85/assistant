@@ -1,13 +1,11 @@
 package com.acabra.robot.bot;
 
+import com.acabra.robot.security.SecuritySettings;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.*;
+import java.awt.Toolkit;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Slf4j
 public class BotFactory {
@@ -17,12 +15,17 @@ public class BotFactory {
         try {
             BotConfig config = BotConfig.fromArgs(args);
             OsType type = OsType.getOsType();
+            SecuritySettings secSettings = SecuritySettings.of(config.lockOnChange, config.panicMode);
             switch (type) {
                 case MAC:
-                    execute(new MacBot(config.loopingText, config.executionType, config.onFinishAction), config.runningTime, config.timeUnit);
+                    MacBot mac = new MacBot(config.loopingText, config.executionType, config.onFinishAction,
+                            secSettings, config.executionMap);
+                    execute(mac, config.runningTime, config.timeUnit);
                     break;
                 case WIN:
-                    execute(new WinBot(config.loopingText, config.executionType, config.onFinishAction), config.runningTime, config.timeUnit);
+                    WinBot win = new WinBot(config.loopingText, config.executionType, config.onFinishAction,
+                            secSettings, config.executionMap);
+                    execute(win, config.runningTime, config.timeUnit);
                     break;
                 default:
                     throw new UnsupportedOperationException("No implementation bot found for OS: " + OsType.OS_NAME);
@@ -34,9 +37,9 @@ public class BotFactory {
 
     private static void execute(ImprovedBot bot, long secondsRunning, TimeUnit timeUnit) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        CompletableFuture.runAsync(() -> bot.run(), executor);
-        CompletableFuture.runAsync(()-> requestShutdown(bot, executor),
-                CompletableFuture.delayedExecutor(secondsRunning, timeUnit));
+        CompletableFuture.runAsync(bot, executor);
+        Executor dEx = CompletableFuture.delayedExecutor(secondsRunning, timeUnit);
+        CompletableFuture.runAsync(()-> requestShutdown(bot, executor), dEx);
     }
 
     private static void requestShutdown(ImprovedBot bot, ExecutorService executor) {

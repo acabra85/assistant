@@ -1,7 +1,9 @@
 package com.acabra.robot.bot;
 
+import com.acabra.robot.exception.UnexpectedSystemManipulationException;
+import com.acabra.robot.security.SecurityMonitor;
+import com.acabra.robot.security.SecuritySettings;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -20,22 +22,25 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected static final long DEFAULT_ACTION_DELAY = 150L;
     private final OnFinishAction onFinishAction;
     protected final ExecutionType executionType;
+    protected final Map<String, String> executionVariables;
+    private final SecurityMonitor lockMonitor;
 
     private volatile boolean finish = false;
 
-    private final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    private final OsType os;
     protected final String loopText;
     protected final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
 
-    public ImprovedBot(OsType os, String loopText, ExecutionType executionType, OnFinishAction onFinishAction) throws AWTException {
+    public ImprovedBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction,
+                       SecuritySettings securitySettings, Map<String, String> executionVariables) throws AWTException {
         super();
         this.loopText = loopText;
-        this.os = os;
         this.onFinishAction = onFinishAction;
         this.executionType = executionType;
         this.setAutoDelay((int)DEFAULT_ACTION_DELAY);
         this.setAutoWaitForIdle(true);
+        this.executionVariables = executionVariables;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        this.lockMonitor = new SecurityMonitor(screenSize, securitySettings, MouseInfo.getPointerInfo(), this::getPixelColor);
     }
 
     protected void type(char aChar) throws InterruptedException {
@@ -63,9 +68,22 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void pressCombined(List<Integer> combine) {
-        keyPress(combine.get(0));
-        keyStroke(combine.get(1));
-        keyRelease(combine.get(0));
+        switch (combine.size()) {
+            case 2:
+                pressCombined(combine.get(0), combine.get(1));
+                break;
+            case 3:
+                pressCombined(combine.get(0), combine.get(1), combine.get(2));
+                break;
+            default:
+                break;
+        }
+    }
+
+    protected void pressCombined(int groupEvt1, int groupEvt2, int terminalEvtKey) {
+        keyPress(groupEvt1);
+        pressCombined(groupEvt2, terminalEvtKey);
+        keyRelease(groupEvt1);
     }
 
     protected void keyStroke(int evtKey) {
@@ -114,13 +132,36 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     @SuppressWarnings("BusyWait")
     protected void mouseMoverAction() throws InterruptedException {
         boolean cycle = false;
+        PointerInfo pointerInfo;
+        Point curLocation;
         while(continueRunning()) {
-            Point curLocation = MouseInfo.getPointerInfo().getLocation();
-            mouseMove(curLocation.x, curLocation.y + (cycle ? 10 : -10) );
+            pointerInfo = MouseInfo.getPointerInfo();
+            if (pointerInfo != null) {
+                curLocation = pointerInfo.getLocation();
+                if(lockMonitor.shouldLockStation(curLocation))  {
+                    log.error(">>>>>>>>>>Conditions Changed - LOCKING STATION <<<<<<<<<<<<<");
+                    throw new UnexpectedSystemManipulationException("Initial Conditions changed");
+                }
+                mouseMove(curLocation.x, curLocation.y + (cycle ? 1 : -1) );
+            } else {
+                log.info("pointerInfo is null");
+                pressEsc();
+                pressEsc();
+            }
             cycle = !cycle;
-            Thread.sleep(10000L);
+            Thread.sleep(3000L);
         }
     }
+
+    protected void lockUnlock() throws InterruptedException {
+        lockStation();
+        unlockStation();
+        Thread.sleep(10000L);
+    }
+
+    protected abstract void unlockStation();
+
+    protected abstract void lockStation();
 
     protected void pressCtrlWith(int evtKey) {
         pressCombined(KeyEvent.VK_CONTROL, evtKey);
@@ -138,9 +179,6 @@ public abstract class ImprovedBot extends Robot implements Runnable {
 
     protected abstract void minimizeAll() throws InterruptedException;
 
-    protected Logger getLog() {
-        return log;
-    }
     private static HashMap<Character, List<Integer>> buildCharEvtMap() {
         return new HashMap<>(){{
             put('a', List.of(KeyEvent.VK_A));
@@ -232,10 +270,17 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     public void run() {
         try {
             botAction();
-        } finally {
             terminateBot();
+        } catch (UnexpectedSystemManipulationException uem){
+            lockStation();
+        } finally {
+            if(dispose()) {
+                log.info("robot disposed");
+            }
         }
     }
+
+    protected abstract boolean dispose();
 
     protected void terminateBot() {
 
@@ -254,6 +299,10 @@ public abstract class ImprovedBot extends Robot implements Runnable {
             case SHUTDOWN:
                 log.info("Bot completed, system shutdown");
                 sysShutDown();
+                return;
+            case LOCK:
+                log.info("Bot completed, locking system");
+                lockStation();
                 return;
             default:
                 throw new UnsupportedOperationException("Operation not yet supported: " + onFinishAction);

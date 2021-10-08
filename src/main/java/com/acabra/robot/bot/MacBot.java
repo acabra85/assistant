@@ -3,14 +3,29 @@ package com.acabra.robot.bot;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.Map;
+
+import com.acabra.robot.exception.UnexpectedSystemManipulationException;
+import com.acabra.robot.security.SecuritySettings;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class MacBot extends ImprovedBot {
 
-    public MacBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction) throws AWTException {
-        super(OsType.MAC, loopText, executionType, onFinishAction);
+    public MacBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction,
+                  SecuritySettings secSettings, Map<String, String> executionVariables) throws AWTException {
+        super(loopText, executionType, onFinishAction, secSettings, executionVariables);
         log.info("Running the MAC os bot ...");
+    }
+
+    @Override
+    protected void unlockStation() {
+
+    }
+
+    @Override
+    protected void lockStation() {
+        pressCombined(KeyEvent.VK_META, KeyEvent.VK_SHIFT, KeyEvent.VK_Q);
     }
 
     @Override
@@ -61,8 +76,17 @@ public class MacBot extends ImprovedBot {
             }
         } catch (Throwable t) {
             log.error(t.getMessage(), t);
+            if(t instanceof UnexpectedSystemManipulationException) {
+                throw (UnexpectedSystemManipulationException)t;
+            }
         }
         log.info("Program finished");
+    }
+
+    @Override
+    protected boolean dispose() {
+
+        return false;
     }
 
     private void notepadTypeAction() throws InterruptedException {
