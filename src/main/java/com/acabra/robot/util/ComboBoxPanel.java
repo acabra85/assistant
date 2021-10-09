@@ -2,6 +2,7 @@ package com.acabra.robot.util;
 
 import com.acabra.robot.bot.ExecutionType;
 import com.acabra.robot.bot.OnFinishAction;
+import com.acabra.robot.bot.PredefBot;
 
 import javax.swing.*;
 import java.awt.FlowLayout;
@@ -61,9 +62,14 @@ public class ComboBoxPanel<T> extends JPanel {
         return new ComboBoxPanel<>(title, options, items, defValue).response;
     }
 
-    public static String getNoYes(String msg, String defValue) {
-        String title = String.format(msg);
+    public static String getNoYes(String title, String defValue) {
         String[] items = {"No", "Yes"};
+        String[] options = buildOptionsFromItems(items);
+        return new ComboBoxPanel<>(title, options, items, defValue).response;
+    }
+
+    public static PredefBot getPredefinedBotType(String title, PredefBot defValue) {
+        PredefBot[] items = PredefBot.values();
         String[] options = buildOptionsFromItems(items);
         return new ComboBoxPanel<>(title, options, items, defValue).response;
     }

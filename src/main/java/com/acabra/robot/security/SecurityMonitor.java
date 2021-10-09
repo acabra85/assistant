@@ -24,7 +24,7 @@ public class SecurityMonitor {
         this.pixelColor = getColor.apply(location.x, location.y);
         this.lockOnChange = secSettings.lockOnChange;
         this.panicMode = secSettings.panicMode;
-        this.screenSize = screenSize;
+        this.screenSize = (Dimension) screenSize.clone();
     }
 
     public boolean shouldLockStation(Point curLocation) {

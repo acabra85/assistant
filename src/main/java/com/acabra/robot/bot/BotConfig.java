@@ -49,6 +49,10 @@ public class BotConfig {
     public static BotConfig fromArgs(String[] args) {
         if(args == null || args.length == 0) {
             log.debug("No args given at launch");
+            if(getPredefinedConfig()) {
+                PredefBot preDefBotType = getPredefinedBotType();
+                return botConfigForName(preDefBotType);
+            }
             ExecutionType executionType = getExecutionType();
             String text = getLoopingText(executionType);
             TimeUnit timeUnit = getTimeUnit();
@@ -59,28 +63,44 @@ public class BotConfig {
             boolean panicMode = isPanicMode(lockOnChange);
             return new BotConfig(text, runningTime, timeUnit, executionType, finishAction, lockOnChange, panicMode, map);
         } else if(args.length == 1) {
-            switch (PredefBot.valueOf(args[0].toUpperCase(Locale.ROOT))) {
-                case HOME:
-                    log.info("Building home bot ...");
-                    return BotConfig.ofHome();
-                case LUNCH:
-                    log.info("Config for Lunch ...");
-                    return BotConfig.ofLunch();
-                case BREAK:
-                    log.info("Config for break ...");
-                    return BotConfig.ofBreak();
-                case BREAK_PANIC:
-                    log.info("Config for break ...");
-                    return BotConfig.ofBreakPanic();
-                case BACKGROUND:
-                    log.info("Config for break ...");
-                    return BotConfig.ofBackground();
-                default:
-                    break;
-            }
+            String name = args[0].toUpperCase(Locale.ROOT);
+            return botConfigForName(PredefBot.valueOf(name));
         }
         log.debug("Args given dismissed {}, launching with defaults", Arrays.toString(args));
         return new BotConfig();
+    }
+
+    private static PredefBot getPredefinedBotType() {
+        return ComboBoxPanel.getPredefinedBotType("Which Bot?", null);
+    }
+
+    private static boolean getPredefinedConfig() {
+        return "Yes".equals(ComboBoxPanel.getNoYes("Predefined Bot?", "No"));
+    }
+
+    private static BotConfig botConfigForName(PredefBot type) {
+        if(null == type) {
+            return new BotConfig();
+        }
+        switch (type) {
+            case HOME:
+                log.info("Building home bot ...");
+                return BotConfig.ofHome();
+            case LUNCH:
+                log.info("Config for Lunch ...");
+                return BotConfig.ofLunch();
+            case BREAK:
+                log.info("Config for break ...");
+                return BotConfig.ofBreak();
+            case BREAK_PANIC:
+                log.info("Config for break ...");
+                return BotConfig.ofBreakPanic();
+            case BACKGROUND:
+                log.info("Config for break ...");
+                return BotConfig.ofBackground();
+            default:
+                throw new NoSuchElementException("Unable to find the given value: " + type.name());
+        }
     }
 
     private static BotConfig ofBackground() {
@@ -124,7 +144,7 @@ public class BotConfig {
     }
 
     private static boolean isLockOnChange() {
-        return !"yes".equalsIgnoreCase(getRunInBackGround());
+        return !"Yes".equalsIgnoreCase(getRunInBackGround());
     }
 
     private static String getRunInBackGround() {

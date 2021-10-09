@@ -2,6 +2,8 @@ package com.acabra.robot.bot;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -19,13 +21,8 @@ public class MacBot extends ImprovedBot {
     }
 
     @Override
-    protected void unlockStation() {
-
-    }
-
-    @Override
     protected void lockStation() {
-        pressCombined(KeyEvent.VK_META, KeyEvent.VK_SHIFT, KeyEvent.VK_Q);
+        pressCombined(KeyEvent.VK_META, KeyEvent.VK_CONTROL, KeyEvent.VK_Q);
     }
 
     @Override
@@ -61,61 +58,44 @@ public class MacBot extends ImprovedBot {
     }
 
     @Override
-    public void botAction() {
+    protected boolean dispose(Robot parent) {
+        String className = "java.awt.Robot";
+        String privateFieldName = "peer";
+        String methodName = "dispose";
+        Field f = null;
+        boolean modifiedAccessor = false;
         try {
-            switch (this.executionType) {
-                case NOTEPAD_TYPE:
-                    notepadTypeAction();
-                    break;
-                case MOUSE_MOVER:
-                    mouseMoverAction();
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unimplemented type: " + this.executionType);
-
+            f = Class.forName(className).getDeclaredField(privateFieldName);
+            if(!f.canAccess(parent)) {
+                f.setAccessible(true);
+                modifiedAccessor = true;
             }
-        } catch (Throwable t) {
-            log.error(t.getMessage(), t);
-            if(t instanceof UnexpectedSystemManipulationException) {
-                throw (UnexpectedSystemManipulationException)t;
-            }
-        }
-        log.info("Program finished");
-    }
+            Object o = f.get(parent);
+            Method method = o.getClass().getDeclaredMethod(methodName);
 
-    @Override
-    protected boolean dispose() {
-
-        return false;
-    }
-
-    private void notepadTypeAction() throws InterruptedException {
-        try {
-            runCommand("TextEdit");
-            fileNew();
-            noFormatText();
-            while (continueRunning()) {
-                typeText(loopText);
-                deleteAll(true);
-                Thread.sleep(LOOP_SLEEP);
-            }
-            deleteAll(true);
-            closeProgram(true);
-        } catch (InterruptedException ie) {
-            log.error(ie.getMessage());
+            boolean modifiedMethodAccessor = false;
             try {
-                deleteAll(false);
-                closeProgram(false);
+                if(!method.canAccess(o)) {
+                    method.setAccessible(true);
+                    modifiedMethodAccessor = true;
+                }
+                method.invoke(o);
+                return true;
             } catch (Exception e) {
-                log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
+                log.error(e.getMessage(), e);
+            } finally {
+                if(modifiedMethodAccessor) {
+                    method.setAccessible(false);
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        } finally {
+            if(modifiedAccessor) {
+                f.setAccessible(false);
             }
         }
-    }
-
-    private void noFormatText() {
-        keyPress(KeyEvent.VK_META);
-        pressCombined(CHAR_EVT_MAP.get('T'));
-        keyRelease(KeyEvent.VK_META);
+        return false;
     }
 
     @Override
@@ -137,6 +117,11 @@ public class MacBot extends ImprovedBot {
     protected void newWindow() throws InterruptedException {
         pressCommandWith(CHAR_EVT_MAP.get('n').get(0));
         Thread.sleep(DEFAULT_ACTION_DELAY);
+    }
+
+    @Override
+    protected String getNotepadName() {
+        return "TextEdit";
     }
 
     private void closeVim() throws InterruptedException {

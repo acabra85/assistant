@@ -12,19 +12,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class ImprovedBot extends Robot implements Runnable {
 
     protected static final java.util.List<Integer> DEFAULT_NOT_FOUND_KEY = List.of(KeyEvent.VK_SHIFT, KeyEvent.VK_3);
-    protected static final long LOOP_SLEEP = 5000L;
+    protected static final long LOOP_PERIOD = 5000L;
     private static final long DEFAULT_TYPING_DELAY = 80L;
     protected static final long DEFAULT_ACTION_DELAY = 150L;
     private final OnFinishAction onFinishAction;
     protected final ExecutionType executionType;
     protected final Map<String, String> executionVariables;
     private final SecurityMonitor lockMonitor;
-
     private volatile boolean finish = false;
 
     protected final String loopText;
@@ -32,13 +35,12 @@ public abstract class ImprovedBot extends Robot implements Runnable {
 
     public ImprovedBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction,
                        SecuritySettings securitySettings, Map<String, String> executionVariables) throws AWTException {
-        super();
         this.loopText = loopText;
         this.onFinishAction = onFinishAction;
         this.executionType = executionType;
         this.setAutoDelay((int)DEFAULT_ACTION_DELAY);
         this.setAutoWaitForIdle(true);
-        this.executionVariables = executionVariables;
+        this.executionVariables = Collections.unmodifiableMap(executionVariables);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         this.lockMonitor = new SecurityMonitor(screenSize, securitySettings, MouseInfo.getPointerInfo(), this::getPixelColor);
     }
@@ -123,14 +125,13 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     }
 
     protected void runCommand(String command) throws InterruptedException {
-        //minimizeAll();
         openRunWindow();
         execute(command);
         Thread.sleep(DEFAULT_ACTION_DELAY);
     }
 
     @SuppressWarnings("BusyWait")
-    protected void mouseMoverAction() throws InterruptedException {
+    private void mouseMoverAction() {
         boolean cycle = false;
         PointerInfo pointerInfo;
         Point curLocation;
@@ -149,17 +150,13 @@ public abstract class ImprovedBot extends Robot implements Runnable {
                 pressEsc();
             }
             cycle = !cycle;
-            Thread.sleep(3000L);
+            try {
+                Thread.sleep(LOOP_PERIOD);
+            } catch (InterruptedException ie) {
+                log.info("MouseMoverAction interrupted");
+            }
         }
     }
-
-    protected void lockUnlock() throws InterruptedException {
-        lockStation();
-        unlockStation();
-        Thread.sleep(10000L);
-    }
-
-    protected abstract void unlockStation();
 
     protected abstract void lockStation();
 
@@ -264,7 +261,46 @@ public abstract class ImprovedBot extends Robot implements Runnable {
         return List.of(KeyEvent.VK_SEMICOLON);
     }
 
-    public abstract void botAction();
+    protected void botAction() {
+        try {
+            switch (this.executionType) {
+                case NOTEPAD_TYPE:
+                    notepadTypeAction();
+                    break;
+                case MOUSE_MOVER:
+                    mouseMoverAction();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unimplemented type: " + this.executionType);
+            }
+        } catch (Throwable t) {
+            log.error(t.getMessage(), t);
+            if(t instanceof UnexpectedSystemManipulationException) {
+                throw (UnexpectedSystemManipulationException)t;
+            }
+        }
+    }
+
+    @SuppressWarnings("BusyWait")
+    private void notepadTypeAction() {
+        try {
+            runCommand(getNotepadName());
+            fileNew();
+            while (continueRunning()) {
+                typeText(loopText);
+                deleteAll(true);
+                try {
+                    Thread.sleep(LOOP_PERIOD);
+                } catch (InterruptedException ie) {
+                    log.info("notepadTypeAction interrupted: " + ie.getMessage());
+                }
+            }
+            deleteAll(true);
+            closeProgram(true);
+        } catch (InterruptedException ie) {
+            log.info("notepadTypeAction interrupted: " +  ie.getMessage());
+        }
+    }
 
     @Override
     public void run() {
@@ -274,13 +310,11 @@ public abstract class ImprovedBot extends Robot implements Runnable {
         } catch (UnexpectedSystemManipulationException uem){
             lockStation();
         } finally {
-            if(dispose()) {
+            if(dispose((Robot) this)) {
                 log.info("robot disposed");
             }
         }
     }
-
-    protected abstract boolean dispose();
 
     protected void terminateBot() {
 
@@ -322,4 +356,8 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected abstract void deleteAll(boolean sleep) throws InterruptedException;
 
     protected abstract void newWindow() throws InterruptedException;
+
+    protected abstract boolean dispose(Robot parent);
+
+    protected abstract String getNotepadName();
 }

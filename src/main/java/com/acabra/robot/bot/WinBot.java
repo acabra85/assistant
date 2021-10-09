@@ -1,10 +1,9 @@
 package com.acabra.robot.bot;
 
-import com.acabra.robot.exception.UnexpectedSystemManipulationException;
 import com.acabra.robot.security.SecuritySettings;
 import lombok.extern.slf4j.Slf4j;
 
-import java.awt.AWTException;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -20,11 +19,6 @@ public class WinBot extends ImprovedBot {
     }
 
     //static { System.loadLibrary("lib/com_acabra_robot_ImprovedBot"); }
-
-    @Override
-    protected void unlockStation() {
-        pressCtrlAltDel();
-    }
 
     @Override
     protected void lockStation() {
@@ -50,29 +44,7 @@ public class WinBot extends ImprovedBot {
     }
 
     @Override
-    public void botAction() {
-        try {
-            switch (this.executionType) {
-                case NOTEPAD_TYPE:
-                    notepadTypeAction();
-                    break;
-                case MOUSE_MOVER:
-                    mouseMoverAction();
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unimplemented type: " + this.executionType);
-            }
-        } catch (Throwable t) {
-            log.error(t.getMessage(), t);
-            if(t instanceof UnexpectedSystemManipulationException) {
-                throw (UnexpectedSystemManipulationException)t;
-            }
-        }
-        log.info("Program finished");
-    }
-
-    @Override
-    protected boolean dispose() {
+    protected boolean dispose(Robot parent) {
         String className = "java.awt.Robot";
         String privateFieldName = "peer";
         String methodName = "disposeImpl";
@@ -80,11 +52,11 @@ public class WinBot extends ImprovedBot {
         boolean modifiedAccessor = false;
         try {
             f = Class.forName(className).getDeclaredField(privateFieldName);
-            if(!f.canAccess(this)) {
+            if(!f.canAccess(parent)) {
                 f.setAccessible(true);
                 modifiedAccessor = true;
             }
-            Object o = f.get(this);
+            Object o = f.get(parent);
             Method method = o.getClass().getDeclaredMethod(methodName);
 
             boolean modifiedMethodAccessor = false;
@@ -112,27 +84,9 @@ public class WinBot extends ImprovedBot {
         return false;
     }
 
-    @SuppressWarnings("BusyWait")
-    private void notepadTypeAction() {
-        try {
-            runCommand("notepad");
-            fileNew();
-            while (continueRunning()) {
-                typeText(loopText);
-                deleteAll(true);
-                Thread.sleep(LOOP_SLEEP);
-            }
-            deleteAll(true);
-            closeProgram(true);
-        } catch (InterruptedException ie) {
-            log.error(ie.getMessage());
-            try {
-                deleteAll(false);
-                closeProgram(false);
-            } catch (Exception e) {
-                log.error("Unable to gracefully close the system: {}", e.getMessage(), e);
-            }
-        }
+    @Override
+    protected String getNotepadName() {
+        return "notepad";
     }
 
     @Override
