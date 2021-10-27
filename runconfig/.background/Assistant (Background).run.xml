@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Assistant (Background)" type="Application" factoryName="Application">
+    <output_file path="latest.log" is_save="true" />
     <option name="MAIN_CLASS_NAME" value="com.acabra.robot.Assistant" />
     <module name="assistant" />
     <option name="PROGRAM_PARAMETERS" value="background" />

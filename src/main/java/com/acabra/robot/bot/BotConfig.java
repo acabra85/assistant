@@ -118,7 +118,7 @@ public class BotConfig {
     }
 
     private static BotConfig ofBreak() {
-        return new BotConfig("", 20,
+        return new BotConfig("", getRunningTime(TimeUnit.MINUTES),
                 TimeUnit.MINUTES,
                 ExecutionType.MOUSE_MOVER,
                 OnFinishAction.LOCK, true, false, Collections.emptyMap());
