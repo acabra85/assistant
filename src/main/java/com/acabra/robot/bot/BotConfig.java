@@ -111,7 +111,7 @@ public class BotConfig {
     }
 
     private static BotConfig ofBreakPanic() {
-        return new BotConfig("", 10,
+        return new BotConfig("", getRunningTime(TimeUnit.MINUTES),
                 TimeUnit.MINUTES,
                 ExecutionType.MOUSE_MOVER,
                 OnFinishAction.LOCK, true, true, Collections.emptyMap());
