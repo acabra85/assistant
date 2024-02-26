@@ -1,6 +1,7 @@
 package com.acabra.robot.bot;
 
 import com.acabra.robot.security.SecuritySettings;
+import com.acabra.robot.spotbugs.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -10,8 +11,8 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 @Slf4j
-public class WinBot extends ImprovedBot {
-
+public final class WinBot extends ImprovedBot {
+    @SuppressFBWarnings(value="CT_CONSTRUCTOR_THROW", justification="it's ok")
     public WinBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction, SecuritySettings secSettings,
                   Map<String, String> executionVariables) throws AWTException {
         super(loopText, executionType, onFinishAction, secSettings, executionVariables);

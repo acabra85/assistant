@@ -6,14 +6,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-
-import com.acabra.robot.exception.UnexpectedSystemManipulationException;
 import com.acabra.robot.security.SecuritySettings;
+import com.acabra.robot.spotbugs.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MacBot extends ImprovedBot {
-
+public final class MacBot extends ImprovedBot {
+    @SuppressFBWarnings(value="CT_CONSTRUCTOR_THROW", justification="it's ok")
     public MacBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction,
                   SecuritySettings secSettings, Map<String, String> executionVariables) throws AWTException {
         super(loopText, executionType, onFinishAction, secSettings, executionVariables);

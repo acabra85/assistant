@@ -3,6 +3,7 @@ package com.acabra.robot.bot;
 import com.acabra.robot.exception.UnexpectedSystemManipulationException;
 import com.acabra.robot.security.SecurityMonitor;
 import com.acabra.robot.security.SecuritySettings;
+import com.acabra.robot.spotbugs.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
@@ -12,10 +13,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class ImprovedBot extends Robot implements Runnable {
@@ -33,6 +30,7 @@ public abstract class ImprovedBot extends Robot implements Runnable {
     protected final String loopText;
     protected final static Map<Character, List<Integer>> CHAR_EVT_MAP = Collections.unmodifiableMap(buildCharEvtMap());
 
+    @SuppressFBWarnings(value="CT_CONSTRUCTOR_THROW", justification="it's ok")
     public ImprovedBot(String loopText, ExecutionType executionType, OnFinishAction onFinishAction,
                        SecuritySettings securitySettings, Map<String, String> executionVariables) throws AWTException {
         this.loopText = loopText;

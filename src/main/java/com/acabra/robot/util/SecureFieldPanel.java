@@ -7,7 +7,7 @@ import java.awt.event.WindowEvent;
 import java.util.Objects;
 import java.util.Optional;
 
-public class SecureFieldPanel extends JPanel {
+public final class SecureFieldPanel extends JPanel {
     public final Optional<String> password;
 
     public SecureFieldPanel(String prompt) {

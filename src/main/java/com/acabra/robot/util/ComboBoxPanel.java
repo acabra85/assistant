@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
-public class ComboBoxPanel<T> extends JPanel {
+public final class ComboBoxPanel<T> extends JPanel {
     private final T response;
 
     private ComboBoxPanel(String prompt, String[] options, T[] items, T defValue) {
